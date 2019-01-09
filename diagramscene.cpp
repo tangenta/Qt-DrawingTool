@@ -159,6 +159,7 @@ void DiagramScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
             break;
 //! [6] //! [7]
         case InsertLine:
+            if (itemAt(mouseEvent->scenePos(), QTransform()) == nullptr) break;
             line = new QGraphicsLineItem(QLineF(mouseEvent->scenePos(),
                                         mouseEvent->scenePos()));
             line->setPen(QPen(myLineColor, 2));

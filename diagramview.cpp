@@ -9,6 +9,7 @@ DiagramView::DiagramView(QGraphicsScene* scene, QWidget* parent)
 
 }
 
+
 void DiagramView::keyPressEvent(QKeyEvent* event) {
     if ((event->modifiers() & Qt::KeyboardModifier::ControlModifier) != 0) {
         setDragMode(DragMode::ScrollHandDrag);
