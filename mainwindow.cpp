@@ -80,7 +80,8 @@ MainWindow::MainWindow()
 
     QHBoxLayout *layout = new QHBoxLayout;
     layout->addWidget(toolBox);
-    view = new QGraphicsView(scene);
+    view = new DiagramView(scene);
+    view->setDragMode(QGraphicsView::RubberBandDrag);
     layout->addWidget(view);
 
     QWidget *widget = new QWidget;

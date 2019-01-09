@@ -250,6 +250,7 @@ void DiagramScene::wheelEvent(QGraphicsSceneWheelEvent* wheelEvent) {
         QGraphicsScene::wheelEvent(wheelEvent);
     }
 }
+
 //! [13]
 
 //! [14]
