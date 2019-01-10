@@ -76,6 +76,7 @@ class DiagramItem : public QGraphicsPolygonItem
 public:
     enum { Type = UserType + 15 };
     enum DiagramType { Step, Conditional, StartEnd, Io };
+    enum Direction {TopLeft = 0, Top, TopRight, Left, Right, BottomLeft, Bottom, BottomRight };
 
     DiagramItem(DiagramType diagramType, QMenu *contextMenu, QGraphicsItem *parent = nullptr);
 
@@ -86,16 +87,30 @@ public:
     void addArrow(Arrow *arrow);
     QPixmap image() const;
     int type() const override { return Type;}
+    QList<QPointF> resizeHandlePoints();
+    bool isCloseEnough(QPointF const& p1, QPointF const& p2);
 
 protected:
+    void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+    void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
+    void hoverMoveEvent(QGraphicsSceneHoverEvent *event) override;
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
+               QWidget *widget = nullptr) override;
     void contextMenuEvent(QGraphicsSceneContextMenuEvent *event) override;
     QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
 
 private:
+    QPolygonF scaledPolygon(QPolygonF const& old, Direction direction, QPointF const& newPos);
+
     DiagramType myDiagramType;
     QPolygonF myPolygon;
     QMenu *myContextMenu;
     QList<Arrow *> arrows;
+    static constexpr qreal resizeHandlePointWidth = 5;
+    static constexpr qreal closeEnougthDistance = 5;
+    bool resizeMode = false;
+    Direction scaleDirection = TopLeft;
 };
 //! [0]
 

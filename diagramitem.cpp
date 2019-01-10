@@ -55,6 +55,7 @@
 #include <QGraphicsSceneContextMenuEvent>
 #include <QMenu>
 #include <QPainter>
+#include <QDebug>
 
 //! [0]
 DiagramItem::DiagramItem(DiagramType diagramType, QMenu *contextMenu,
@@ -95,6 +96,7 @@ DiagramItem::DiagramItem(DiagramType diagramType, QMenu *contextMenu,
     setFlag(QGraphicsItem::ItemIsMovable, true);
     setFlag(QGraphicsItem::ItemIsSelectable, true);
     setFlag(QGraphicsItem::ItemSendsGeometryChanges, true);
+    setAcceptHoverEvents(true);
 }
 //! [0]
 
@@ -139,6 +141,88 @@ QPixmap DiagramItem::image() const
 
     return pixmap;
 }
+
+QList<QPointF> DiagramItem::resizeHandlePoints() {
+    qreal width = resizeHandlePointWidth;
+    QRectF rf = QRectF(boundingRect().topLeft() + QPointF(width/2, width/2),
+                           boundingRect().bottomRight() - QPointF(width/2, width/2));
+    qreal centerX = rf.center().x();
+    qreal centerY = rf.center().y();
+    return QList<QPointF>{rf.topLeft(), QPointF(centerX, rf.top()), rf.topRight(),
+                         QPointF(rf.left(), centerY), QPointF(rf.right(), centerY),
+                rf.bottomLeft(), QPointF(centerX, rf.bottom()), rf.bottomRight()};
+}
+
+bool DiagramItem::isCloseEnough(QPointF const& p1, QPointF const& p2) {
+    qreal delta = std::abs(p1.x() - p2.x()) + std::abs(p1.y() - p2.y());
+    return delta < closeEnougthDistance;
+}
+
+void DiagramItem::mousePressEvent(QGraphicsSceneMouseEvent* event) {
+    resizeMode = false;
+    int index = 0;
+    foreach (QPointF const& p, resizeHandlePoints()) {
+        if (isCloseEnough(event->pos(), p)) {
+            resizeMode = true;
+            break;
+        }
+        index++;
+    }
+    scaleDirection = static_cast<Direction>(index);
+    setFlag(GraphicsItemFlag::ItemIsMovable, !resizeMode);
+    if (resizeMode) {
+        event->accept();
+    } else {
+        QGraphicsItem::mousePressEvent(event);
+    }
+}
+
+void DiagramItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event) {
+    if (resizeMode) {
+        prepareGeometryChange();
+        myPolygon = scaledPolygon(myPolygon, scaleDirection, event->pos());
+        setPolygon(myPolygon);
+    }
+    QGraphicsItem::mouseMoveEvent(event);
+}
+
+void DiagramItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event) {
+    resizeMode = false;
+    QGraphicsItem::mouseReleaseEvent(event);
+}
+
+void DiagramItem::hoverMoveEvent(QGraphicsSceneHoverEvent* event) {
+    setCursor(Qt::ArrowCursor);
+    int index = 0;
+    foreach (QPointF const& p, resizeHandlePoints()) {
+        if (isCloseEnough(p, event->pos())) {
+            switch (static_cast<Direction>(index)) {
+            case TopLeft:
+            case BottomRight: setCursor(Qt::SizeFDiagCursor); break;
+            case Top:
+            case Bottom: setCursor(Qt::SizeVerCursor); break;
+            case TopRight:
+            case BottomLeft: setCursor(Qt::SizeBDiagCursor); break;
+            case Left:
+            case Right: setCursor(Qt::SizeHorCursor); break;
+            }
+            break;
+        }
+        index++;
+    }
+    QGraphicsItem::hoverMoveEvent(event);
+}
+
+void DiagramItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
+                        QWidget* widget) {
+    QGraphicsPolygonItem::paint(painter, option, widget);
+    if (this->isSelected()) {
+        qreal width = resizeHandlePointWidth;
+        foreach(QPointF const& point, resizeHandlePoints()) {
+            painter->drawEllipse(QRectF(point.x() - width/2, point.y() - width/2, width, width));
+        }
+    }
+}
 //! [4]
 
 //! [5]
@@ -161,4 +245,67 @@ QVariant DiagramItem::itemChange(GraphicsItemChange change, const QVariant &valu
 
     return value;
 }
+
+QPolygonF DiagramItem::scaledPolygon(const QPolygonF& old, DiagramItem::Direction direction,
+                                    const QPointF& newPos) {
+    qreal oldWidth = old.boundingRect().width();
+    qreal oldHeight = old.boundingRect().height();
+    qreal scaleWidth, scaleHeight;
+
+    switch(direction) {
+    case TopLeft: {
+        QPointF fixPoint = old.boundingRect().bottomRight();
+        scaleWidth = (fixPoint.x() - newPos.x()) / oldWidth;
+        scaleHeight = (newPos.y() - fixPoint.y()) / oldHeight;
+        break;
+    }
+    case Top: {
+        QPointF fixPoint = old.boundingRect().bottomLeft();
+        scaleWidth = 1;
+        scaleHeight = (fixPoint.y() - newPos.y()) / oldHeight;
+        break;
+    }
+    case TopRight: {
+        QPointF fixPoint = old.boundingRect().bottomLeft();
+        scaleWidth = (newPos.x() - fixPoint.x()) / oldWidth;
+        scaleHeight = (fixPoint.y() - newPos.y() ) / oldHeight;
+        break;
+    }
+    case Right: {
+        QPointF fixPoint = old.boundingRect().bottomLeft();
+        scaleWidth = (newPos.x() - fixPoint.x()) / oldWidth;
+        scaleHeight = 1;
+        break;
+    }
+    case BottomRight: {
+        QPointF fixPoint = old.boundingRect().topLeft();
+        scaleWidth = (newPos.x() - fixPoint.x()) / oldWidth;
+        scaleHeight = (newPos.y() - fixPoint.y()) / oldHeight;
+        break;
+    }
+    case Bottom: {
+        QPointF fixPoint = old.boundingRect().bottomLeft();
+        scaleWidth = 1;
+        scaleHeight = (newPos.y() - fixPoint.y()) / oldHeight;
+        break;
+    }
+    case BottomLeft: {
+        QPointF fixPoint = old.boundingRect().bottomLeft();
+        scaleWidth = (fixPoint.x() - newPos.x()) / oldWidth;
+        scaleHeight = (newPos.y() - fixPoint.y()) / oldHeight;
+        break;
+    }
+    case Left: {
+        QPointF fixPoint = old.boundingRect().bottomLeft();
+        scaleWidth = (fixPoint.x() - newPos.x()) / oldWidth;
+        scaleHeight = 1;
+        break;
+    }
+    }
+    QTransform trans;
+    trans.scale(scaleWidth, scaleHeight);
+    return trans.map(old);
+}
+
+
 //! [6]
