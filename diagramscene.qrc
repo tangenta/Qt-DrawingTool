@@ -17,5 +17,6 @@
         <file>images/background4.png</file>
         <file>images/paste.png</file>
         <file>images/copy.png</file>
+        <file>images/cut.png</file>
     </qresource>
 </RCC>

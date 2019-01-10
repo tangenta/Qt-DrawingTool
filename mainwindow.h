@@ -87,6 +87,7 @@ private slots:
     void buttonGroupClicked(int id);
     void copyItem();
     void pasteItem();
+    void cutItem();
     void deleteItem();
     void pointerGroupClicked(int id);
     void bringToFront();
@@ -133,6 +134,7 @@ private:
     QAction *deleteAction;
     QAction *copyAction;
     QAction *pasteAction;
+    QAction *cutAction;
 
     QAction *toFrontAction;
     QAction *sendBackAction;

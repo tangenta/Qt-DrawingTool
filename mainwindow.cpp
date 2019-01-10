@@ -150,14 +150,21 @@ void MainWindow::copyItem() {
 
 void MainWindow::pasteItem() {
     QList<QGraphicsItem*> pasteBoardCopy(cloneItems(pasteBoard));
+    foreach(QGraphicsItem* p, scene->items()) p->setSelected(false);
 
     foreach(QGraphicsItem* item, pasteBoard) {
         if (item->type() != Arrow::Type) {
             item->setPos(item->scenePos() + QPointF(20, 20));
         }
         scene->addItem(item);
+        item->setSelected(true);
     }
     pasteBoard.swap(pasteBoardCopy);
+}
+
+void MainWindow::cutItem() {
+    copyItem();
+    deleteItem();
 }
 //! [2]
 
@@ -481,13 +488,18 @@ void MainWindow::createActions()
 
     copyAction = new QAction(QIcon(":/images/copy.png"), tr("C&opy"), this);
     copyAction->setShortcut(tr("Ctrl+C"));
-    copyAction->setStatusTip(tr("Copy items form diagram"));
+    copyAction->setStatusTip(tr("Copy items from diagram"));
     connect(copyAction, SIGNAL(triggered()), this, SLOT(copyItem()));
 
     pasteAction = new QAction(QIcon(":/images/paste.png"), tr("P&aste"), this);
     pasteAction->setShortcut(tr("Ctrl+V"));
     pasteAction->setStatusTip(tr("Paste items from copyboard to diagram"));
     connect(pasteAction, SIGNAL(triggered()), this, SLOT(pasteItem()));
+
+    cutAction = new QAction(QIcon(":/images/cut.png"), tr("C&ut"), this);
+    cutAction->setShortcut(tr("Ctrl+X"));
+    cutAction->setStatusTip(tr("Cut items from diagram"));
+    connect(cutAction, SIGNAL(triggered()), this, SLOT(cutItem()));
 }
 
 //! [24]
@@ -498,6 +510,7 @@ void MainWindow::createMenus()
 
     itemMenu = menuBar()->addMenu(tr("&Item"));
     itemMenu->addAction(copyAction);
+    itemMenu->addAction(cutAction);
     itemMenu->addAction(pasteAction);
     itemMenu->addAction(deleteAction);
     itemMenu->addSeparator();
@@ -515,6 +528,7 @@ void MainWindow::createToolbars()
 //! [25]
     editToolBar = addToolBar(tr("Edit"));
     editToolBar->addAction(copyAction);
+    editToolBar->addAction(cutAction);
     editToolBar->addAction(pasteAction);
     editToolBar->addAction(deleteAction);
     editToolBar->addAction(toFrontAction);
