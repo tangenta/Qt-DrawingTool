@@ -363,7 +363,7 @@ void MainWindow::itemSelected(QGraphicsItem *item)
     qgraphicsitem_cast<DiagramTextItem *>(item);
 
     QFont font = textItem->font();
-    fontCombo->setCurrentFont(font);
+    //fontCombo->setCurrentFont(font);
     fontSizeCombo->setEditText(QString().setNum(font.pointSize()));
     boldAction->setChecked(font.weight() == QFont::Bold);
     italicAction->setChecked(font.italic());
@@ -533,10 +533,14 @@ void MainWindow::createToolbars()
     editToolBar->addAction(deleteAction);
     editToolBar->addAction(toFrontAction);
     editToolBar->addAction(sendBackAction);
+    removeToolBar(editToolBar);
+    addToolBar(Qt::LeftToolBarArea, editToolBar);
+    editToolBar->show();
 
     fontCombo = new QFontComboBox();
     connect(fontCombo, SIGNAL(currentFontChanged(QFont)),
             this, SLOT(currentFontChanged(QFont)));
+    fontCombo->setEditable(false);
 
     fontSizeCombo = new QComboBox;
     fontSizeCombo->setEditable(true);
