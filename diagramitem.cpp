@@ -56,6 +56,7 @@
 #include <QMenu>
 #include <QPainter>
 #include <QDebug>
+#include <QStyleOptionGraphicsItem>
 
 //! [0]
 DiagramItem::DiagramItem(DiagramType diagramType, QMenu *contextMenu,
@@ -215,7 +216,10 @@ void DiagramItem::hoverMoveEvent(QGraphicsSceneHoverEvent* event) {
 
 void DiagramItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
                         QWidget* widget) {
-    QGraphicsPolygonItem::paint(painter, option, widget);
+    // remove build-in selected state
+    QStyleOptionGraphicsItem myOption(*option);
+    myOption.state &= ~QStyle::State_Selected;
+    QGraphicsPolygonItem::paint(painter, &myOption, widget);
     if (this->isSelected()) {
         qreal width = resizeHandlePointWidth;
         foreach(QPointF const& point, resizeHandlePoints()) {

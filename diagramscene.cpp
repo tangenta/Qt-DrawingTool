@@ -148,14 +148,6 @@ void DiagramScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
     if (mouseEvent->button() != Qt::LeftButton)
         return;
 
-//    DiagramItem* itemUnderCursor = dynamic_cast<DiagramItem*>(
-//                itemAt(mouseEvent->scenePos(), QTransform()));
-//    if (itemUnderCursor != nullptr) {
-//        foreach (QPointF const& p, itemUnderCursor->resizeHandlePoints()) {
-//            if (itemUnderCursor->isCloseEnough(p, mouseEvent->po))
-//        }
-//    }
-
     DiagramItem *item;
     switch (myMode) {
         case InsertItem:
@@ -198,8 +190,6 @@ void DiagramScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
 //! [10]
 void DiagramScene::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
 {
-//    if (itemAt(mouseEvent->scenePos(), QTransform()) != nullptr)
-//        qDebug() << "has item";
     if (myMode == InsertLine && line != nullptr) {
         QLineF newLine(line->line().p1(), mouseEvent->scenePos());
         line->setLine(newLine);
