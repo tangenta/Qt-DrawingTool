@@ -257,12 +257,11 @@ QPolygonF DiagramItem::scaledPolygon(const QPolygonF& old, DiagramItem::Directio
     qreal oldWidth = old.boundingRect().width();
     qreal oldHeight = old.boundingRect().height();
     qreal scaleWidth, scaleHeight;
-
     switch(direction) {
     case TopLeft: {
         QPointF fixPoint = old.boundingRect().bottomRight();
         scaleWidth = (fixPoint.x() - newPos.x()) / oldWidth;
-        scaleHeight = (newPos.y() - fixPoint.y()) / oldHeight;
+        scaleHeight = (fixPoint.y() - newPos.y()) / oldHeight;
         break;
     }
     case Top: {
@@ -290,19 +289,19 @@ QPolygonF DiagramItem::scaledPolygon(const QPolygonF& old, DiagramItem::Directio
         break;
     }
     case Bottom: {
-        QPointF fixPoint = old.boundingRect().bottomLeft();
+        QPointF fixPoint = old.boundingRect().topLeft();
         scaleWidth = 1;
         scaleHeight = (newPos.y() - fixPoint.y()) / oldHeight;
         break;
     }
     case BottomLeft: {
-        QPointF fixPoint = old.boundingRect().bottomLeft();
+        QPointF fixPoint = old.boundingRect().topRight();
         scaleWidth = (fixPoint.x() - newPos.x()) / oldWidth;
         scaleHeight = (newPos.y() - fixPoint.y()) / oldHeight;
         break;
     }
     case Left: {
-        QPointF fixPoint = old.boundingRect().bottomLeft();
+        QPointF fixPoint = old.boundingRect().bottomRight();
         scaleWidth = (fixPoint.x() - newPos.x()) / oldWidth;
         scaleHeight = 1;
         break;
