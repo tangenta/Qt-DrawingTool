@@ -152,7 +152,7 @@ void MainWindow::pasteItem() {
     QList<QGraphicsItem*> pasteBoardCopy(cloneItems(pasteBoard));
 
     foreach(QGraphicsItem* item, pasteBoard) {
-        if (item->type() == DiagramItem::Type) {
+        if (item->type() != Arrow::Type) {
             item->setPos(item->scenePos() + QPointF(20, 20));
         }
         scene->addItem(item);

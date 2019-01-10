@@ -65,6 +65,8 @@ DiagramTextItem* DiagramTextItem::clone() {
     cloned->setFont(font());
     cloned->setTextWidth(textWidth());
     cloned->setDefaultTextColor(defaultTextColor());
+    cloned->setPos(scenePos());
+    cloned->setZValue(zValue());
     return cloned;
 }
 
