@@ -117,13 +117,22 @@ void MainWindow::backgroundButtonGroupClicked(QAbstractButton *button)
 //! [1]
 
 //! [2]
-void MainWindow::buttonGroupClicked(int id)
-{
+void MainWindow::buttonGroupClicked(int id) {
     QList<QAbstractButton *> buttons = buttonGroup->buttons();
+    QAbstractButton* clickedButton = buttonGroup->button(id);
+
+    // set other button unchecked
     foreach (QAbstractButton *button, buttons) {
-        if (buttonGroup->button(id) != button)
+        if (clickedButton != button)
             button->setChecked(false);
     }
+
+    // simply set objButton unchecked if already checked
+    if (!clickedButton->isChecked()) {
+        scene->setMode(DiagramScene::Mode(pointerTypeGroup->checkedId()));
+        return;
+    }
+
     if (id == InsertTextButton) {
         scene->setMode(DiagramScene::InsertText);
     } else {
@@ -158,6 +167,10 @@ void MainWindow::deleteItem()
 //! [4]
 void MainWindow::pointerGroupClicked(int)
 {
+    // set all buttons in toolbox unchecked
+    foreach(QAbstractButton* b, buttonGroup->buttons()) {
+        b->setChecked(false);
+    }
     scene->setMode(DiagramScene::Mode(pointerTypeGroup->checkedId()));
 }
 //! [4]
@@ -336,8 +349,7 @@ void MainWindow::itemSelected(QGraphicsItem *item)
 void MainWindow::about()
 {
     QMessageBox::about(this, tr("About Diagram Scene"),
-                       tr("The <b>Diagram Scene</b> example shows "
-                          "use of the graphics framework."));
+                       tr("A drawing tool based on Qt Example."));
 }
 //! [20]
 

@@ -220,6 +220,8 @@ void DiagramItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* optio
     QStyleOptionGraphicsItem myOption(*option);
     myOption.state &= ~QStyle::State_Selected;
     QGraphicsPolygonItem::paint(painter, &myOption, widget);
+
+    // add resize handles
     if (this->isSelected()) {
         qreal width = resizeHandlePointWidth;
         foreach(QPointF const& point, resizeHandlePoints()) {
