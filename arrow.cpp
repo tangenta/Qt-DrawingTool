@@ -97,6 +97,7 @@ void Arrow::updatePosition()
     QLineF line(mapFromItem(myStartItem, 0, 0), mapFromItem(myEndItem, 0, 0));
     setLine(line);
 }
+
 //! [3]
 
 //! [4]

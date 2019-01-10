@@ -58,6 +58,16 @@ DiagramTextItem::DiagramTextItem(QGraphicsItem *parent)
     setFlag(QGraphicsItem::ItemIsMovable);
     setFlag(QGraphicsItem::ItemIsSelectable);
 }
+
+DiagramTextItem* DiagramTextItem::clone() {
+    DiagramTextItem* cloned = new DiagramTextItem(nullptr);
+    cloned->setPlainText(toPlainText());
+    cloned->setFont(font());
+    cloned->setTextWidth(textWidth());
+    cloned->setDefaultTextColor(defaultTextColor());
+    return cloned;
+}
+
 //! [0]
 
 //! [1]

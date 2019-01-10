@@ -71,12 +71,13 @@ public:
     enum { Type = UserType + 4 };
 
     Arrow(DiagramItem *startItem, DiagramItem *endItem,
-      QGraphicsItem *parent = 0);
+      QGraphicsItem *parent = nullptr);
 
     int type() const override { return Type; }
     QRectF boundingRect() const override;
     QPainterPath shape() const override;
     void setColor(const QColor &color) { myColor = color; }
+    const QColor getColor() { return myColor; }
     DiagramItem *startItem() const { return myStartItem; }
     DiagramItem *endItem() const { return myEndItem; }
 

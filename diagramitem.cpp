@@ -99,6 +99,7 @@ DiagramItem::DiagramItem(DiagramType diagramType, QMenu *contextMenu,
     setFlag(QGraphicsItem::ItemSendsGeometryChanges, true);
     setAcceptHoverEvents(true);
 }
+
 //! [0]
 
 //! [1]
@@ -158,6 +159,17 @@ bool DiagramItem::isCloseEnough(QPointF const& p1, QPointF const& p2) {
     qreal delta = std::abs(p1.x() - p2.x()) + std::abs(p1.y() - p2.y());
     return delta < closeEnougthDistance;
 }
+
+DiagramItem* DiagramItem::clone() {
+    DiagramItem* cloned = new DiagramItem(myDiagramType, myContextMenu, nullptr);
+    cloned->myPolygon = myPolygon;
+    cloned->setPos(scenePos());
+    cloned->setPolygon(myPolygon);
+    cloned->setBrush(brush());
+    cloned->setZValue(zValue() + 0.1);
+    return cloned;
+}
+
 
 void DiagramItem::mousePressEvent(QGraphicsSceneMouseEvent* event) {
     resizeMode = false;

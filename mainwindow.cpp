@@ -59,8 +59,7 @@
 const int InsertTextButton = 10;
 
 //! [0]
-MainWindow::MainWindow()
-{
+MainWindow::MainWindow() {
     createActions();
     createToolBox();
     createMenus();
@@ -140,6 +139,26 @@ void MainWindow::buttonGroupClicked(int id) {
         scene->setMode(DiagramScene::InsertItem);
     }
 }
+
+void MainWindow::copyItem() {
+    foreach(QGraphicsItem* p, pasteBoard) {
+        delete p;
+    }
+    pasteBoard = cloneItems(scene->selectedItems());
+    qDebug() << pasteBoard.size();
+}
+
+void MainWindow::pasteItem() {
+    QList<QGraphicsItem*> pasteBoardCopy(cloneItems(pasteBoard));
+
+    foreach(QGraphicsItem* item, pasteBoard) {
+        if (item->type() == DiagramItem::Type) {
+            item->setPos(item->scenePos() + QPointF(20, 20));
+        }
+        scene->addItem(item);
+    }
+    pasteBoard.swap(pasteBoardCopy);
+}
 //! [2]
 
 //! [3]
@@ -160,7 +179,7 @@ void MainWindow::deleteItem()
              qgraphicsitem_cast<DiagramItem *>(item)->removeArrows();
          scene->removeItem(item);
          delete item;
-     }
+    }
 }
 //! [3]
 
@@ -459,6 +478,16 @@ void MainWindow::createActions()
     aboutAction = new QAction(tr("A&bout"), this);
     aboutAction->setShortcut(tr("F1"));
     connect(aboutAction, SIGNAL(triggered()), this, SLOT(about()));
+
+    copyAction = new QAction(QIcon(":/images/copy.png"), tr("C&opy"), this);
+    copyAction->setShortcut(tr("Ctrl+C"));
+    copyAction->setStatusTip(tr("Copy items form diagram"));
+    connect(copyAction, SIGNAL(triggered()), this, SLOT(copyItem()));
+
+    pasteAction = new QAction(QIcon(":/images/paste.png"), tr("P&aste"), this);
+    pasteAction->setShortcut(tr("Ctrl+V"));
+    pasteAction->setStatusTip(tr("Paste items from copyboard to diagram"));
+    connect(pasteAction, SIGNAL(triggered()), this, SLOT(pasteItem()));
 }
 
 //! [24]
@@ -468,6 +497,8 @@ void MainWindow::createMenus()
     fileMenu->addAction(exitAction);
 
     itemMenu = menuBar()->addMenu(tr("&Item"));
+    itemMenu->addAction(copyAction);
+    itemMenu->addAction(pasteAction);
     itemMenu->addAction(deleteAction);
     itemMenu->addSeparator();
     itemMenu->addAction(toFrontAction);
@@ -483,6 +514,8 @@ void MainWindow::createToolbars()
 {
 //! [25]
     editToolBar = addToolBar(tr("Edit"));
+    editToolBar->addAction(copyAction);
+    editToolBar->addAction(pasteAction);
     editToolBar->addAction(deleteAction);
     editToolBar->addAction(toFrontAction);
     editToolBar->addAction(sendBackAction);
@@ -670,5 +703,39 @@ QIcon MainWindow::createColorIcon(QColor color)
     painter.fillRect(QRect(0, 0, 20, 20), color);
 
     return QIcon(pixmap);
+}
+
+QList<QGraphicsItem*> MainWindow::cloneItems(const QList<QGraphicsItem*>& items) {
+    QHash<QGraphicsItem*, QGraphicsItem*> copyMap;
+    foreach (QGraphicsItem* item, items) {
+        if (item->type() == DiagramItem::Type) {
+            copyMap[item] = qgraphicsitem_cast<DiagramItem*>(item)->clone();
+        } else if (item->type() == DiagramTextItem::Type) {
+            copyMap[item] = qgraphicsitem_cast<DiagramTextItem*>(item)->clone();
+        }
+    }
+
+    // connect DiagramItem with new arrow
+    foreach (QGraphicsItem* item, items) {
+        if (item->type() == Arrow::Type) {
+            Arrow* arrow = qgraphicsitem_cast<Arrow*>(item);
+            DiagramItem* copiedStartItem =
+                    qgraphicsitem_cast<DiagramItem*>(copyMap.value(arrow->startItem(), nullptr));
+            DiagramItem* copiedEndItem =
+                    qgraphicsitem_cast<DiagramItem*>(copyMap.value(arrow->endItem(), nullptr));
+
+            if (copiedStartItem == nullptr || copiedEndItem == nullptr) continue;
+
+            Arrow* newArrow = new Arrow(copiedStartItem, copiedEndItem, nullptr);
+            newArrow->setColor(arrow->getColor());
+
+            copiedStartItem->addArrow(newArrow);
+            copiedEndItem->addArrow(newArrow);
+            newArrow->setZValue(-1000.0);
+
+            copyMap[item] = newArrow;
+        }
+    }
+    return copyMap.values();
 }
 //! [32]

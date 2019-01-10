@@ -69,9 +69,11 @@ class DiagramTextItem : public QGraphicsTextItem
 public:
     enum { Type = UserType + 3 };
 
-    DiagramTextItem(QGraphicsItem *parent = 0);
+    DiagramTextItem(QGraphicsItem *parent = nullptr);
 
     int type() const override { return Type; }
+
+    DiagramTextItem* clone();
 
 signals:
     void lostFocus(DiagramTextItem *item);

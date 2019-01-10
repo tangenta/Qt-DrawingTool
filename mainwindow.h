@@ -55,6 +55,7 @@
 
 #include <QMainWindow>
 #include "diagramview.h"
+#include <memory>
 
 class DiagramScene;
 
@@ -84,6 +85,8 @@ public:
 private slots:
     void backgroundButtonGroupClicked(QAbstractButton *button);
     void buttonGroupClicked(int id);
+    void copyItem();
+    void pasteItem();
     void deleteItem();
     void pointerGroupClicked(int id);
     void bringToFront();
@@ -118,12 +121,18 @@ private:
     QIcon createColorToolButtonIcon(const QString &image, QColor color);
     QIcon createColorIcon(QColor color);
 
+    QList<QGraphicsItem*> cloneItems(QList<QGraphicsItem*> const& items);
+
     DiagramScene *scene;
     QGraphicsView *view;
+
+    QList<QGraphicsItem*> pasteBoard;
 
     QAction *exitAction;
     QAction *addAction;
     QAction *deleteAction;
+    QAction *copyAction;
+    QAction *pasteAction;
 
     QAction *toFrontAction;
     QAction *sendBackAction;

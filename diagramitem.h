@@ -89,6 +89,7 @@ public:
     int type() const override { return Type;}
     QList<QPointF> resizeHandlePoints();
     bool isCloseEnough(QPointF const& p1, QPointF const& p2);
+    DiagramItem* clone();
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event) override;

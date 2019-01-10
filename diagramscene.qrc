@@ -15,5 +15,7 @@
         <file>images/background2.png</file>
         <file>images/background3.png</file>
         <file>images/background4.png</file>
+        <file>images/paste.png</file>
+        <file>images/copy.png</file>
     </qresource>
 </RCC>
