@@ -89,6 +89,8 @@ MainWindow::MainWindow() {
     setCentralWidget(widget);
     setWindowTitle(tr("Diagramscene"));
     setUnifiedTitleAndToolBarOnMac(true);
+
+    undoStack.backup(QList<QGraphicsItem*>());
 }
 //! [0]
 
@@ -160,6 +162,8 @@ void MainWindow::pasteItem() {
         item->setSelected(true);
     }
     pasteBoard.swap(pasteBoardCopy);
+    if (!scene->selectedItems().empty())
+        undoStack.backup(cloneItems(scene->items()));
 }
 
 void MainWindow::cutItem() {
@@ -169,23 +173,29 @@ void MainWindow::cutItem() {
 //! [2]
 
 //! [3]
-void MainWindow::deleteItem()
-{
-    foreach (QGraphicsItem *item, scene->selectedItems()) {
-        if (item->type() == Arrow::Type) {
-            scene->removeItem(item);
-            Arrow *arrow = qgraphicsitem_cast<Arrow *>(item);
-            arrow->startItem()->removeArrow(arrow);
-            arrow->endItem()->removeArrow(arrow);
-            delete item;
-        }
-    }
+void MainWindow::deleteItem() {
+    bool needsBackup = !scene->selectedItems().empty();
+    scene->deleteItems(scene->selectedItems());
+    if (needsBackup)
+        undoStack.backup(cloneItems(scene->items()));
+}
 
-    foreach (QGraphicsItem *item, scene->selectedItems()) {
-         if (item->type() == DiagramItem::Type)
-             qgraphicsitem_cast<DiagramItem *>(item)->removeArrows();
-         scene->removeItem(item);
-         delete item;
+void MainWindow::undo() {
+    if (undoStack.isEmpty()) return;
+    // sweep away all items
+    scene->deleteItems(scene->items());
+    QList<QGraphicsItem*> undoneItems = cloneItems(undoStack.undo());
+    foreach(QGraphicsItem* item, undoneItems) {
+        scene->addItem(item);
+    }
+}
+
+void MainWindow::redo() {
+    if (undoStack.isFull()) return;
+    scene->deleteItems(scene->items());
+    QList<QGraphicsItem*> redoneItems = cloneItems(undoStack.redo());
+    foreach(QGraphicsItem* item, redoneItems) {
+        scene->addItem(item);
     }
 }
 //! [3]
@@ -216,6 +226,7 @@ void MainWindow::bringToFront()
             zValue = item->zValue() + 0.1;
     }
     selectedItem->setZValue(zValue);
+    undoStack.backup(cloneItems(scene->items()));
 }
 //! [5]
 
@@ -234,6 +245,7 @@ void MainWindow::sendToBack()
             zValue = item->zValue() - 0.1;
     }
     selectedItem->setZValue(zValue);
+    undoStack.backup(cloneItems(scene->items()));
 }
 //! [6]
 
@@ -243,6 +255,7 @@ void MainWindow::itemInserted(DiagramItem *item)
     pointerTypeGroup->button(int(DiagramScene::MoveItem))->setChecked(true);
     scene->setMode(DiagramScene::Mode(pointerTypeGroup->checkedId()));
     buttonGroup->button(int(item->diagramType()))->setChecked(false);
+    undoStack.backup(cloneItems(scene->items()));
 }
 //! [7]
 
@@ -251,6 +264,11 @@ void MainWindow::textInserted(QGraphicsTextItem *)
 {
     buttonGroup->button(InsertTextButton)->setChecked(false);
     scene->setMode(DiagramScene::Mode(pointerTypeGroup->checkedId()));
+    undoStack.backup(cloneItems(scene->items()));
+}
+
+void MainWindow::arrowInserted() {
+    undoStack.backup(cloneItems(scene->items()));
 }
 //! [8]
 
@@ -297,6 +315,7 @@ void MainWindow::textColorChanged()
                                      ":/images/textpointer.png",
                                      qvariant_cast<QColor>(textAction->data())));
     textButtonTriggered();
+    undoStack.backup(cloneItems(scene->items()));
 }
 //! [12]
 
@@ -308,6 +327,7 @@ void MainWindow::itemColorChanged()
                                      ":/images/floodfill.png",
                                      qvariant_cast<QColor>(fillAction->data())));
     fillButtonTriggered();
+    undoStack.backup(cloneItems(scene->items()));
 }
 //! [13]
 
@@ -396,7 +416,7 @@ void MainWindow::createToolBox()
     textButton->setCheckable(true);
     buttonGroup->addButton(textButton, InsertTextButton);
     textButton->setIcon(QIcon(QPixmap(":/images/textpointer.png")));
-    textButton->setIconSize(QSize(50, 50));
+    textButton->setIconSize(QSize(30, 30));
     QGridLayout *textLayout = new QGridLayout;
     textLayout->addWidget(textButton, 0, 0, Qt::AlignHCenter);
     textLayout->addWidget(new QLabel(tr("Text")), 1, 0, Qt::AlignCenter);
@@ -500,6 +520,16 @@ void MainWindow::createActions()
     cutAction->setShortcut(tr("Ctrl+X"));
     cutAction->setStatusTip(tr("Cut items from diagram"));
     connect(cutAction, SIGNAL(triggered()), this, SLOT(cutItem()));
+
+    undoAction = new QAction(QIcon(":images/undo.png"), tr("U&ndo"), this);
+    undoAction->setShortcut(tr("Ctrl+Z"));
+    undoAction->setStatusTip(tr("Undo last operation"));
+    connect(undoAction, SIGNAL(triggered()), this, SLOT(undo()));
+
+    redoAction = new QAction(QIcon(":images/redo.png"), tr("R&edo"), this);
+    redoAction->setShortcut(tr("Ctrl+Shift+Z"));
+    redoAction->setStatusTip(tr("Redo last operation"));
+    connect(redoAction, SIGNAL(triggered()), this, SLOT(redo()));
 }
 
 //! [24]
@@ -513,6 +543,9 @@ void MainWindow::createMenus()
     itemMenu->addAction(cutAction);
     itemMenu->addAction(pasteAction);
     itemMenu->addAction(deleteAction);
+    itemMenu->addSeparator();
+    itemMenu->addAction(undoAction);
+    itemMenu->addAction(redoAction);
     itemMenu->addSeparator();
     itemMenu->addAction(toFrontAction);
     itemMenu->addAction(sendBackAction);
@@ -531,6 +564,8 @@ void MainWindow::createToolbars()
     editToolBar->addAction(cutAction);
     editToolBar->addAction(pasteAction);
     editToolBar->addAction(deleteAction);
+    editToolBar->addAction(undoAction);
+    editToolBar->addAction(redoAction);
     editToolBar->addAction(toFrontAction);
     editToolBar->addAction(sendBackAction);
     removeToolBar(editToolBar);
@@ -657,7 +692,7 @@ QWidget *MainWindow::createCellWidget(const QString &text, DiagramItem::DiagramT
 
     QToolButton *button = new QToolButton;
     button->setIcon(icon);
-    button->setIconSize(QSize(50, 50));
+    button->setIconSize(QSize(30, 30));
     button->setCheckable(true);
     buttonGroup->addButton(button, int(type));
 

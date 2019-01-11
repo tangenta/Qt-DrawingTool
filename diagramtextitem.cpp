@@ -50,6 +50,7 @@
 
 #include "diagramtextitem.h"
 #include "diagramscene.h"
+#include <QDebug>
 
 //! [0]
 DiagramTextItem::DiagramTextItem(QGraphicsItem *parent)
@@ -80,6 +81,11 @@ QVariant DiagramTextItem::itemChange(GraphicsItemChange change,
         emit selectedChange(this);
     return value;
 }
+
+void DiagramTextItem::focusInEvent(QFocusEvent* event) {
+    qDebug() << "start editing" << this;
+    QGraphicsTextItem::focusInEvent(event);
+}
 //! [1]
 
 //! [2]
@@ -87,6 +93,7 @@ void DiagramTextItem::focusOutEvent(QFocusEvent *event)
 {
     setTextInteractionFlags(Qt::NoTextInteraction);
     emit lostFocus(this);
+    qDebug() << "after editing" << this;
     QGraphicsTextItem::focusOutEvent(event);
 }
 //! [2]
@@ -97,5 +104,15 @@ void DiagramTextItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
     if (textInteractionFlags() == Qt::NoTextInteraction)
         setTextInteractionFlags(Qt::TextEditorInteraction);
     QGraphicsTextItem::mouseDoubleClickEvent(event);
+}
+
+void DiagramTextItem::mousePressEvent(QGraphicsSceneMouseEvent* event) {
+    qDebug() << "text begin move";
+    QGraphicsTextItem::mousePressEvent(event);
+}
+
+void DiagramTextItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event) {
+    qDebug() << "text end moving";
+    QGraphicsTextItem::mouseReleaseEvent(event);
 }
 //! [5]

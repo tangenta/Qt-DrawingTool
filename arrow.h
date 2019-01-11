@@ -84,7 +84,8 @@ public:
     void updatePosition();
 
 protected:
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = 0) override;
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
+               QWidget *widget = nullptr) override;
 
 private:
     DiagramItem *myStartItem;

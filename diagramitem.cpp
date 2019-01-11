@@ -184,8 +184,10 @@ void DiagramItem::mousePressEvent(QGraphicsSceneMouseEvent* event) {
     scaleDirection = static_cast<Direction>(index);
     setFlag(GraphicsItemFlag::ItemIsMovable, !resizeMode);
     if (resizeMode) {
+        qDebug() << "begin resizing";
         event->accept();
     } else {
+        qDebug() << "item type " << this->type() << " start moving from " << scenePos();
         QGraphicsItem::mousePressEvent(event);
     }
 }
@@ -200,6 +202,11 @@ void DiagramItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event) {
 }
 
 void DiagramItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event) {
+    if (!resizeMode) {
+        qDebug() << "\t end moving in " << scenePos();
+    } else {
+        qDebug() << "after resizing";
+    }
     resizeMode = false;
     QGraphicsItem::mouseReleaseEvent(event);
 }

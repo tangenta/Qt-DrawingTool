@@ -116,6 +116,28 @@ void DiagramScene::setFont(const QFont &font)
             item->setFont(myFont);
     }
 }
+
+void DiagramScene::deleteItems(QList<QGraphicsItem*> const& items) {
+    qDebug() << "delete items" << items;
+
+    QList<QGraphicsItem*> diagramItems;
+    foreach (QGraphicsItem *item, items) {
+        if (item->type() == Arrow::Type) {
+            removeItem(item);
+            Arrow *arrow = qgraphicsitem_cast<Arrow *>(item);
+            arrow->startItem()->removeArrow(arrow);
+            arrow->endItem()->removeArrow(arrow);
+            delete item;
+        } else diagramItems.append(item);
+    }
+
+    foreach (QGraphicsItem *item, diagramItems) {
+        if (item->type() == DiagramItem::Type)
+             qgraphicsitem_cast<DiagramItem *>(item)->removeArrows();
+        removeItem(item);
+        delete item;
+    }
+}
 //! [4]
 
 void DiagramScene::setMode(Mode mode)
@@ -155,9 +177,11 @@ void DiagramScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
             item->setBrush(myItemColor);
             addItem(item);
             item->setPos(mouseEvent->scenePos());
+            qDebug() << "insert item at: " << mouseEvent->scenePos();
+            qDebug() << "\ttype: " << myItemType << " color: " << myItemColor;
             emit itemInserted(item);
             break;
-//! [6] //! [7]
+
         case InsertLine:
             if (itemAt(mouseEvent->scenePos(), QTransform()) == nullptr) break;
             line = new QGraphicsLineItem(QLineF(mouseEvent->scenePos(),
@@ -165,7 +189,7 @@ void DiagramScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
             line->setPen(QPen(myLineColor, 2));
             addItem(line);
             break;
-//! [7] //! [8]
+
         case InsertText:
             textItem = new DiagramTextItem();
             textItem->setFont(myFont);
@@ -179,8 +203,9 @@ void DiagramScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
             textItem->setDefaultTextColor(myTextColor);
             textItem->setPos(mouseEvent->scenePos());
             emit textInserted(textItem);
+            qDebug() << "text inserted at" << textItem->scenePos();
             break;
-//! [8] //! [9]
+
     default: ;
     }
     QGraphicsScene::mousePressEvent(mouseEvent);
@@ -228,19 +253,12 @@ void DiagramScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
             arrow->setZValue(-1000.0);
             addItem(arrow);
             arrow->updatePosition();
+            emit arrowInserted();
         }
     }
 //! [12] //! [13]
     line = nullptr;
     QGraphicsScene::mouseReleaseEvent(mouseEvent);
-}
-
-void DiagramScene::keyPressEvent(QKeyEvent* keyEvent) {
-    QGraphicsScene::keyPressEvent(keyEvent);
-}
-
-void DiagramScene::keyReleaseEvent(QKeyEvent* keyEvent) {
-    QGraphicsScene::keyReleaseEvent(keyEvent);
 }
 
 void DiagramScene::wheelEvent(QGraphicsSceneWheelEvent* wheelEvent) {
@@ -259,7 +277,7 @@ void DiagramScene::wheelEvent(QGraphicsSceneWheelEvent* wheelEvent) {
 bool DiagramScene::isItemChange(int type)
 {
     foreach (QGraphicsItem *item, selectedItems()) {
-        if (item->type() == type)
+        if (item->type() == type)   // fixme: not good when multiple selecting items
             return true;
     }
     return false;

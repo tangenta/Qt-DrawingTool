@@ -29,14 +29,16 @@ HEADERS	    =   mainwindow.h \
                 diagramscene.h \
                 arrow.h \
                 diagramtextitem.h \
-    diagramview.h
+    diagramview.h \
+    undosystem.h
 SOURCES	    =   mainwindow.cpp \
                 diagramitem.cpp \
                 main.cpp \
                 arrow.cpp \
                 diagramtextitem.cpp \
                 diagramscene.cpp \
-    diagramview.cpp
+    diagramview.cpp \
+    undosystem.cpp
 RESOURCES   =	diagramscene.qrc
 
 FORMS +=

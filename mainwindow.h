@@ -56,6 +56,7 @@
 #include <QMainWindow>
 #include "diagramview.h"
 #include <memory>
+#include "undosystem.h"
 
 class DiagramScene;
 
@@ -89,11 +90,14 @@ private slots:
     void pasteItem();
     void cutItem();
     void deleteItem();
+    void undo();
+    void redo();
     void pointerGroupClicked(int id);
     void bringToFront();
     void sendToBack();
     void itemInserted(DiagramItem *item);
     void textInserted(QGraphicsTextItem *item);
+    void arrowInserted();
     void currentFontChanged(const QFont &font);
     void fontSizeChanged(const QString &size);
     void sceneScaleChanged(const QString &scale);
@@ -128,6 +132,7 @@ private:
     QGraphicsView *view;
 
     QList<QGraphicsItem*> pasteBoard;
+    UndoSystem undoStack;
 
     QAction *exitAction;
     QAction *addAction;
@@ -135,6 +140,8 @@ private:
     QAction *copyAction;
     QAction *pasteAction;
     QAction *cutAction;
+    QAction *undoAction;
+    QAction *redoAction;
 
     QAction *toFrontAction;
     QAction *sendBackAction;

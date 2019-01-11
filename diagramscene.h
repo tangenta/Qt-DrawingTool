@@ -84,6 +84,9 @@ public:
     void setItemColor(const QColor &color);
     void setFont(const QFont &font);
 
+    // utilities
+    void deleteItems(QList<QGraphicsItem*> const& items);
+
 public slots:
     void setMode(Mode mode);
     void setItemType(DiagramItem::DiagramType type);
@@ -92,6 +95,7 @@ public slots:
 signals:
     void itemInserted(DiagramItem *item);
     void textInserted(QGraphicsTextItem *item);
+    void arrowInserted();
     void itemSelected(QGraphicsItem *item);
     void scaleChanging(int delta);
 
@@ -99,8 +103,6 @@ protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent) override;
     void mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent) override;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent) override;
-    void keyPressEvent(QKeyEvent* keyEvent) override;
-    void keyReleaseEvent(QKeyEvent* keyEvent) override;
     void wheelEvent(QGraphicsSceneWheelEvent* wheelEvent) override;
 
 private:
@@ -109,7 +111,6 @@ private:
     DiagramItem::DiagramType myItemType;
     QMenu *myItemMenu;
     Mode myMode;
-    bool leftButtonDown;
     QPointF startPoint;
     QGraphicsLineItem *line;
     QFont myFont;
