@@ -185,6 +185,7 @@ void DiagramItem::mousePressEvent(QGraphicsSceneMouseEvent* event) {
     setFlag(GraphicsItemFlag::ItemIsMovable, !resizeMode);
     if (resizeMode) {
         qDebug() << "begin resizing";
+        previousPolygon = polygon();
         event->accept();
     } else {
         qDebug() << "item type " << this->type() << " start moving from" << scenePos();
@@ -205,6 +206,9 @@ void DiagramItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event) {
 void DiagramItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event) {
     if (resizeMode) {
         qDebug() << "after resizing";
+        if (polygon() != previousPolygon) {
+            isResized = true;
+        }
     } else {
         qDebug() << "\tend moving in" << scenePos();
         if (scenePos() != tmpBeginMovingPosition) {

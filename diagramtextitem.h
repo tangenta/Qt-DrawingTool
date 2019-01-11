@@ -61,7 +61,6 @@ class QGraphicsScene;
 class QGraphicsSceneMouseEvent;
 QT_END_NAMESPACE
 
-//! [0]
 class DiagramTextItem : public QGraphicsTextItem
 {
     Q_OBJECT
@@ -73,6 +72,9 @@ public:
 
     int type() const override { return Type; }
 
+    bool contentIsUpdated() { return contentHasChanged; }
+    bool positionIsUpdated() { return isMoved; }
+    void setUpdated() { isMoved = false; }
     DiagramTextItem* clone();
 
 signals:
@@ -86,7 +88,12 @@ protected:
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) override;
     void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
+
+private:
+    QString contentLastTime;
+    QPointF positionLastTime;
+    bool isMoved = false;
+    bool contentHasChanged = false;
 };
-//! [0]
 
 #endif // DIAGRAMTEXTITEM_H

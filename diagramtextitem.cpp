@@ -51,6 +51,7 @@
 #include "diagramtextitem.h"
 #include "diagramscene.h"
 #include <QDebug>
+#include <QTextCursor>
 
 //! [0]
 DiagramTextItem::DiagramTextItem(QGraphicsItem *parent)
@@ -58,6 +59,7 @@ DiagramTextItem::DiagramTextItem(QGraphicsItem *parent)
 {
     setFlag(QGraphicsItem::ItemIsMovable);
     setFlag(QGraphicsItem::ItemIsSelectable);
+    positionLastTime = QPointF(0, 0);
 }
 
 DiagramTextItem* DiagramTextItem::clone() {
@@ -71,9 +73,6 @@ DiagramTextItem* DiagramTextItem::clone() {
     return cloned;
 }
 
-//! [0]
-
-//! [1]
 QVariant DiagramTextItem::itemChange(GraphicsItemChange change,
                      const QVariant &value)
 {
@@ -83,26 +82,30 @@ QVariant DiagramTextItem::itemChange(GraphicsItemChange change,
 }
 
 void DiagramTextItem::focusInEvent(QFocusEvent* event) {
-    qDebug() << "start editing" << this;
+    qDebug() << "start editing";
+    if (positionLastTime == QPointF(0, 0))
+        // initialize positionLastTime to insertion position
+        positionLastTime = scenePos();
     QGraphicsTextItem::focusInEvent(event);
 }
-//! [1]
 
-//! [2]
-void DiagramTextItem::focusOutEvent(QFocusEvent *event)
-{
+void DiagramTextItem::focusOutEvent(QFocusEvent *event) {
     setTextInteractionFlags(Qt::NoTextInteraction);
-    emit lostFocus(this);
     qDebug() << "after editing" << this;
+    if (contentLastTime == toPlainText()) {
+        contentHasChanged = false;
+    } else {
+        contentLastTime = toPlainText();
+        contentHasChanged = true;
+    }
+    emit lostFocus(this);
     QGraphicsTextItem::focusOutEvent(event);
 }
-//! [2]
 
-//! [5]
-void DiagramTextItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
-{
-    if (textInteractionFlags() == Qt::NoTextInteraction)
+void DiagramTextItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) {
+    if (textInteractionFlags() == Qt::NoTextInteraction) {
         setTextInteractionFlags(Qt::TextEditorInteraction);
+    }
     QGraphicsTextItem::mouseDoubleClickEvent(event);
 }
 
@@ -112,7 +115,11 @@ void DiagramTextItem::mousePressEvent(QGraphicsSceneMouseEvent* event) {
 }
 
 void DiagramTextItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event) {
+    if (scenePos() != positionLastTime) {
+        qDebug() << scenePos() << "::" << positionLastTime;
+        isMoved = true;
+    }
+    positionLastTime = scenePos();
     qDebug() << "text end moving";
     QGraphicsTextItem::mouseReleaseEvent(event);
 }
-//! [5]

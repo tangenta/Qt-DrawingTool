@@ -1,7 +1,8 @@
 #include "undosystem.h"
-
+#include <QDebug>
 
 void UndoSystem::backup(const QList<QGraphicsItem*>&& items) {
+    qDebug() << "inside backup." << items.size();
     int stackSize = itemsStack.length();
     if (currentIndex < stackSize - 1) {
         for (int i = currentIndex + 1; i < stackSize; ++i) {

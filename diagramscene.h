@@ -95,6 +95,7 @@ public slots:
 signals:
     void itemInserted(DiagramItem *item);
     void textInserted(QGraphicsTextItem *item);
+    void textChanged();
     void arrowInserted();
     void itemSelected(QGraphicsItem *item);
     void scaleChanging(int delta);

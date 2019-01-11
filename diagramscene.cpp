@@ -165,7 +165,13 @@ void DiagramScene::editorLostFocus(DiagramTextItem *item)
     if (item->toPlainText().isEmpty()) {
         removeItem(item);
         item->deleteLater();
+    } else {
+        if (item->contentIsUpdated()) {
+            qDebug() << "content update ---";
+            emit textChanged();
+        }
     }
+
 }
 //! [5]
 

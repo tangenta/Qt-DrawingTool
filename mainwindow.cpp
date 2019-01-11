@@ -72,6 +72,8 @@ MainWindow::MainWindow() {
             this, SLOT(textInserted(QGraphicsTextItem*)));
     connect(scene, SIGNAL(arrowInserted()),
             this, SLOT(backupUndostack()));
+    connect(scene, SIGNAL(textChanged()),
+            this, SLOT(backupUndostack()));
     connect(scene, SIGNAL(itemSelected(QGraphicsItem*)),
             this, SLOT(itemSelected(QGraphicsItem*)));
     connect(scene, SIGNAL(scaleChanging(int)),
@@ -191,6 +193,7 @@ void MainWindow::undo() {
     scene->deleteItems(scene->items());
     QList<QGraphicsItem*> undoneItems = cloneItems(undoStack.undo());
     foreach(QGraphicsItem* item, undoneItems) {
+        qDebug() << item << "--------- add item";
         scene->addItem(item);
     }
 
@@ -281,7 +284,6 @@ void MainWindow::textInserted(QGraphicsTextItem *)
 {
     buttonGroup->button(InsertTextButton)->setChecked(false);
     scene->setMode(DiagramScene::Mode(pointerTypeGroup->checkedId()));
-    undoStack.backup(cloneItems(scene->items()));
 }
 
 void MainWindow::backupUndostack() {

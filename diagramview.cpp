@@ -2,6 +2,7 @@
 #include <QKeyEvent>
 #include <QDebug>
 #include "diagramitem.h"
+#include "diagramtextitem.h"
 
 DiagramView::DiagramView(QWidget* parent): QGraphicsView(parent) {
 }
@@ -30,13 +31,23 @@ void DiagramView::mouseReleaseEvent(QMouseEvent* event) {
     bool needsEmit = false;
     foreach(QGraphicsItem* item, scene()->selectedItems()) {
         if (item->type() == DiagramItem::Type) {
-            DiagramItem* diagramItem = qgraphicsitem_cast<DiagramItem*>(item);
-            if (diagramItem->isMoved) {
+            DiagramItem* p = qgraphicsitem_cast<DiagramItem*>(item);
+            if (p->isMoved) {
                 needsEmit = true;
-                diagramItem->isMoved = false;
+                p->isMoved = false;
+            }
+            if (p->isResized) {
+                needsEmit = true;
+                p->isResized = false;
+            }
+        } else if (item->type() == DiagramTextItem::Type) {
+            DiagramTextItem* p = qgraphicsitem_cast<DiagramTextItem*>(item);
+            if (p->positionIsUpdated()) {
+                qDebug() << "isUpdated!";
+                needsEmit = true;
+                p->setUpdated();
             }
         }
     }
     if (needsEmit) emit needsUndoBackup();
-    qDebug() << "last";
 }

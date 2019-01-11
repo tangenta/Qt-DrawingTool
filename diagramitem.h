@@ -116,6 +116,8 @@ private:
 
     QPointF tmpBeginMovingPosition;
     bool isMoved = false;
+    QPolygonF previousPolygon;
+    bool isResized = false;
 };
 //! [0]
 
