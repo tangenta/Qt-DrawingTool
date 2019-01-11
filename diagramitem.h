@@ -73,6 +73,7 @@ class Arrow;
 //! [0]
 class DiagramItem : public QGraphicsPolygonItem
 {
+    friend class DiagramView;
 public:
     enum { Type = UserType + 15 };
     enum DiagramType { Step, Conditional, StartEnd, Io };
@@ -112,6 +113,9 @@ private:
     static constexpr qreal closeEnougthDistance = 5;
     bool resizeMode = false;
     Direction scaleDirection = TopLeft;
+
+    QPointF tmpBeginMovingPosition;
+    bool isMoved = false;
 };
 //! [0]
 

@@ -166,7 +166,7 @@ DiagramItem* DiagramItem::clone() {
     cloned->setPos(scenePos());
     cloned->setPolygon(myPolygon);
     cloned->setBrush(brush());
-    cloned->setZValue(zValue() + 0.1);
+    cloned->setZValue(zValue());
     return cloned;
 }
 
@@ -187,7 +187,8 @@ void DiagramItem::mousePressEvent(QGraphicsSceneMouseEvent* event) {
         qDebug() << "begin resizing";
         event->accept();
     } else {
-        qDebug() << "item type " << this->type() << " start moving from " << scenePos();
+        qDebug() << "item type " << this->type() << " start moving from" << scenePos();
+        tmpBeginMovingPosition = scenePos();
         QGraphicsItem::mousePressEvent(event);
     }
 }
@@ -202,10 +203,14 @@ void DiagramItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event) {
 }
 
 void DiagramItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event) {
-    if (!resizeMode) {
-        qDebug() << "\t end moving in " << scenePos();
-    } else {
+    if (resizeMode) {
         qDebug() << "after resizing";
+    } else {
+        qDebug() << "\tend moving in" << scenePos();
+        if (scenePos() != tmpBeginMovingPosition) {
+            isMoved = true;
+            qDebug() << "-- " << scenePos() << tmpBeginMovingPosition;
+        }
     }
     resizeMode = false;
     QGraphicsItem::mouseReleaseEvent(event);

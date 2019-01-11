@@ -70,6 +70,8 @@ MainWindow::MainWindow() {
             this, SLOT(itemInserted(DiagramItem*)));
     connect(scene, SIGNAL(textInserted(QGraphicsTextItem*)),
             this, SLOT(textInserted(QGraphicsTextItem*)));
+    connect(scene, SIGNAL(arrowInserted()),
+            this, SLOT(backupUndostack()));
     connect(scene, SIGNAL(itemSelected(QGraphicsItem*)),
             this, SLOT(itemSelected(QGraphicsItem*)));
     connect(scene, SIGNAL(scaleChanging(int)),
@@ -82,6 +84,8 @@ MainWindow::MainWindow() {
     view = new DiagramView(scene);
     view->setDragMode(QGraphicsView::RubberBandDrag);
     layout->addWidget(view);
+
+    connect(view, SIGNAL(needsUndoBackup()), this, SLOT(backupUndostack()));
 
     QWidget *widget = new QWidget;
     widget->setLayout(layout);
@@ -157,6 +161,7 @@ void MainWindow::pasteItem() {
     foreach(QGraphicsItem* item, pasteBoard) {
         if (item->type() != Arrow::Type) {
             item->setPos(item->scenePos() + QPointF(20, 20));
+            item->setZValue(item->zValue() + 0.1);  // raise a little bit
         }
         scene->addItem(item);
         item->setSelected(true);
@@ -188,6 +193,12 @@ void MainWindow::undo() {
     foreach(QGraphicsItem* item, undoneItems) {
         scene->addItem(item);
     }
+
+    // update arrows
+    foreach(QGraphicsItem* item, undoneItems) {
+        if (item->type() == Arrow::Type)
+            qgraphicsitem_cast<Arrow*>(item)->updatePosition();
+    }
 }
 
 void MainWindow::redo() {
@@ -196,6 +207,12 @@ void MainWindow::redo() {
     QList<QGraphicsItem*> redoneItems = cloneItems(undoStack.redo());
     foreach(QGraphicsItem* item, redoneItems) {
         scene->addItem(item);
+    }
+
+    // update arrows
+    foreach(QGraphicsItem* item, redoneItems) {
+        if (item->type() == Arrow::Type)
+            qgraphicsitem_cast<Arrow*>(item)->updatePosition();
     }
 }
 //! [3]
@@ -267,7 +284,7 @@ void MainWindow::textInserted(QGraphicsTextItem *)
     undoStack.backup(cloneItems(scene->items()));
 }
 
-void MainWindow::arrowInserted() {
+void MainWindow::backupUndostack() {
     undoStack.backup(cloneItems(scene->items()));
 }
 //! [8]
