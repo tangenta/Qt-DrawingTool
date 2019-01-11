@@ -157,7 +157,7 @@ QList<QPointF> DiagramItem::resizeHandlePoints() {
 
 bool DiagramItem::isCloseEnough(QPointF const& p1, QPointF const& p2) {
     qreal delta = std::abs(p1.x() - p2.x()) + std::abs(p1.y() - p2.y());
-    return delta < closeEnougthDistance;
+    return delta < closeEnoughDistance;
 }
 
 DiagramItem* DiagramItem::clone() {

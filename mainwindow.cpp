@@ -84,7 +84,6 @@ MainWindow::MainWindow() {
     QHBoxLayout *layout = new QHBoxLayout;
     layout->addWidget(toolBox);
     view = new DiagramView(scene);
-    view->setDragMode(QGraphicsView::RubberBandDrag);
     layout->addWidget(view);
 
     connect(view, SIGNAL(needsUndoBackup()), this, SLOT(backupUndostack()));

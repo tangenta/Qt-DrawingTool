@@ -110,7 +110,7 @@ private:
     QMenu *myContextMenu;
     QList<Arrow *> arrows;
     static constexpr qreal resizeHandlePointWidth = 5;
-    static constexpr qreal closeEnougthDistance = 5;
+    static constexpr qreal closeEnoughDistance = 5;
     bool resizeMode = false;
     Direction scaleDirection = TopLeft;
 
