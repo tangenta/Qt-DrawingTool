@@ -106,7 +106,6 @@ protected:
     void wheelEvent(QGraphicsSceneWheelEvent* wheelEvent) override;
 
 private:
-    bool isItemChange(int type);
 
     DiagramItem::DiagramType myItemType;
     QMenu *myItemMenu;

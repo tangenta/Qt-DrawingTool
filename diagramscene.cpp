@@ -74,10 +74,12 @@ DiagramScene::DiagramScene(QMenu *itemMenu, QObject *parent)
 void DiagramScene::setLineColor(const QColor &color)
 {
     myLineColor = color;
-    if (isItemChange(Arrow::Type)) {
-        Arrow *item = qgraphicsitem_cast<Arrow *>(selectedItems().first());
-        item->setColor(myLineColor);
-        update();
+    foreach (QGraphicsItem* p, selectedItems()) {
+        if (p->type() == Arrow::Type) {
+            Arrow* item = qgraphicsitem_cast<Arrow*>(p);
+            item->setColor(myLineColor);
+            update();
+        }
     }
 }
 //! [1]
@@ -86,9 +88,11 @@ void DiagramScene::setLineColor(const QColor &color)
 void DiagramScene::setTextColor(const QColor &color)
 {
     myTextColor = color;
-    if (isItemChange(DiagramTextItem::Type)) {
-        DiagramTextItem *item = qgraphicsitem_cast<DiagramTextItem *>(selectedItems().first());
-        item->setDefaultTextColor(myTextColor);
+    foreach (QGraphicsItem* p, selectedItems()) {
+        if (p->type() == DiagramTextItem::Type) {
+            DiagramTextItem* item = qgraphicsitem_cast<DiagramTextItem*>(p);
+            item->setDefaultTextColor(myTextColor);
+        }
     }
 }
 //! [2]
@@ -97,9 +101,11 @@ void DiagramScene::setTextColor(const QColor &color)
 void DiagramScene::setItemColor(const QColor &color)
 {
     myItemColor = color;
-    if (isItemChange(DiagramItem::Type)) {
-        DiagramItem *item = qgraphicsitem_cast<DiagramItem *>(selectedItems().first());
-        item->setBrush(myItemColor);
+    foreach (QGraphicsItem* p, selectedItems()) {
+        if (p->type() == DiagramItem::Type) {
+            DiagramItem* item = qgraphicsitem_cast<DiagramItem*>(p);
+            item->setBrush(myItemColor);
+        }
     }
 }
 //! [3]
@@ -108,12 +114,11 @@ void DiagramScene::setItemColor(const QColor &color)
 void DiagramScene::setFont(const QFont &font)
 {
     myFont = font;
-
-    if (isItemChange(DiagramTextItem::Type)) {
-        QGraphicsTextItem *item = qgraphicsitem_cast<DiagramTextItem *>(selectedItems().first());
-        //At this point the selection can change so the first selected item might not be a DiagramTextItem
-        if (item)
+    foreach (QGraphicsItem* p, selectedItems()) {
+        if (p->type() == DiagramTextItem::Type) {
+            DiagramTextItem* item = qgraphicsitem_cast<DiagramTextItem*>(p);
             item->setFont(myFont);
+        }
     }
 }
 
@@ -223,9 +228,7 @@ void DiagramScene::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
         QGraphicsScene::mouseMoveEvent(mouseEvent);
     }
 }
-//! [10]
 
-//! [11]
 void DiagramScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
 {
     if (line != nullptr && myMode == InsertLine) {
@@ -238,7 +241,6 @@ void DiagramScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
 
         removeItem(line);
         delete line;
-//! [11] //! [12]
 
         if (startItems.count() > 0 && endItems.count() > 0 &&
             startItems.first()->type() == DiagramItem::Type &&
@@ -256,7 +258,7 @@ void DiagramScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
             emit arrowInserted();
         }
     }
-//! [12] //! [13]
+
     line = nullptr;
     QGraphicsScene::mouseReleaseEvent(mouseEvent);
 }
@@ -271,15 +273,3 @@ void DiagramScene::wheelEvent(QGraphicsSceneWheelEvent* wheelEvent) {
     }
 }
 
-//! [13]
-
-//! [14]
-bool DiagramScene::isItemChange(int type)
-{
-    foreach (QGraphicsItem *item, selectedItems()) {
-        if (item->type() == type)   // fixme: not good when multiple selecting items
-            return true;
-    }
-    return false;
-}
-//! [14]
