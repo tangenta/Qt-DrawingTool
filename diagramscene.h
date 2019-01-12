@@ -107,6 +107,14 @@ protected:
     void wheelEvent(QGraphicsSceneWheelEvent* wheelEvent) override;
 
 private:
+    void mouseDraggingMoveEvent(QGraphicsSceneMouseEvent* event);
+    void clearOrthogonalLines();
+    inline bool closeEnough(qreal x, qreal y, qreal delta);
+    enum LineAttr { Other = 0, Horizontal, Vertical, Both};
+
+    LineAttr getPointsRelationship(QPointF const& p1, QPointF const& p2);
+    void tryEnteringStickyMode(QGraphicsItem* item, QPointF const& target, QPointF const& mousePos);
+    void tryLeavingStickyMode(QGraphicsItem* item, QPointF const& mousePos);
 
     DiagramItem::DiagramType myItemType;
     QMenu *myItemMenu;
@@ -119,6 +127,17 @@ private:
     QColor myItemColor;
     QColor myLineColor;
 
+    bool horizontalStickyMode = false;
+    bool verticalStickyMode = false;
+    QPointF horizontalStickPoint;
+    QPointF verticalStickPoint;
+    QList<QGraphicsLineItem*> orthogonalLines;
+
+    bool hasItemSelected = false;
+
+    static const QPen penForLines;
+    static constexpr qreal Delta = 0.1;
+    static constexpr qreal stickyDistance = 5;
 };
 //! [0]
 
