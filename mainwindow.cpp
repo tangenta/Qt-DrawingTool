@@ -58,7 +58,6 @@
 
 const int InsertTextButton = 10;
 
-//! [0]
 MainWindow::MainWindow() {
     createActions();
     createToolBox();
@@ -97,9 +96,7 @@ MainWindow::MainWindow() {
 
     undoStack.backup(QList<QGraphicsItem*>());
 }
-//! [0]
 
-//! [1]
 void MainWindow::backgroundButtonGroupClicked(QAbstractButton *button)
 {
     QList<QAbstractButton *> buttons = backgroundButtonGroup->buttons();
@@ -120,9 +117,7 @@ void MainWindow::backgroundButtonGroupClicked(QAbstractButton *button)
     scene->update();
     view->update();
 }
-//! [1]
 
-//! [2]
 void MainWindow::buttonGroupClicked(int id) {
     QList<QAbstractButton *> buttons = buttonGroup->buttons();
     QAbstractButton* clickedButton = buttonGroup->button(id);
@@ -176,9 +171,7 @@ void MainWindow::cutItem() {
     copyItem();
     deleteItem();
 }
-//! [2]
 
-//! [3]
 void MainWindow::deleteItem() {
     bool needsBackup = !scene->selectedItems().empty();
     scene->deleteItems(scene->selectedItems());
@@ -217,9 +210,25 @@ void MainWindow::redo() {
             qgraphicsitem_cast<Arrow*>(item)->updatePosition();
     }
 }
-//! [3]
 
-//! [4]
+void MainWindow::groupItems() {
+    QGraphicsItemGroup* group = scene->createItemGroup(scene->selectedItems());
+    group->setFlag(QGraphicsItem::ItemIsMovable, true);
+    group->setFlag(QGraphicsItem::ItemIsSelectable, true);
+    group->setFlag(QGraphicsItem::ItemSendsGeometryChanges, true);
+    scene->addItem(group);
+    backupUndostack();
+}
+
+void MainWindow::ungroupItems() {
+    foreach(QGraphicsItem* p, scene->selectedItems()) {
+        if (p->type() == QGraphicsItemGroup::Type) {
+            scene->destroyItemGroup(qgraphicsitem_cast<QGraphicsItemGroup*>(p));
+        }
+    }
+    backupUndostack();
+}
+
 void MainWindow::pointerGroupClicked(int)
 {
     // set all buttons in toolbox unchecked
@@ -228,9 +237,7 @@ void MainWindow::pointerGroupClicked(int)
     }
     scene->setMode(DiagramScene::Mode(pointerTypeGroup->checkedId()));
 }
-//! [4]
 
-//! [5]
 void MainWindow::bringToFront()
 {
     if (scene->selectedItems().isEmpty())
@@ -245,7 +252,7 @@ void MainWindow::bringToFront()
             zValue = item->zValue() + 0.1;
     }
     selectedItem->setZValue(zValue);
-    undoStack.backup(cloneItems(scene->items()));
+    backupUndostack();
 }
 //! [5]
 
@@ -264,7 +271,7 @@ void MainWindow::sendToBack()
             zValue = item->zValue() - 0.1;
     }
     selectedItem->setZValue(zValue);
-    undoStack.backup(cloneItems(scene->items()));
+    backupUndostack();
 }
 //! [6]
 
@@ -274,7 +281,7 @@ void MainWindow::itemInserted(DiagramItem *item)
     pointerTypeGroup->button(int(DiagramScene::MoveItem))->setChecked(true);
     scene->setMode(DiagramScene::Mode(pointerTypeGroup->checkedId()));
     buttonGroup->button(int(item->diagramType()))->setChecked(false);
-    undoStack.backup(cloneItems(scene->items()));
+    backupUndostack();
 }
 //! [7]
 
@@ -415,9 +422,7 @@ void MainWindow::about()
     QMessageBox::about(this, tr("About Diagram Scene"),
                        tr("A drawing tool based on Qt Example."));
 }
-//! [20]
 
-//! [21]
 void MainWindow::createToolBox()
 {
     buttonGroup = new QButtonGroup(this);
@@ -428,19 +433,19 @@ void MainWindow::createToolBox()
     layout->addWidget(createCellWidget(tr("Conditional"), DiagramItem::Conditional), 0, 0);
     layout->addWidget(createCellWidget(tr("Process"), DiagramItem::Step),0, 1);
     layout->addWidget(createCellWidget(tr("Input/Output"), DiagramItem::Io), 1, 0);
-//! [21]
+    layout->addWidget(createCellWidget(tr("Start/End"), DiagramItem::StartEnd), 1, 1);
 
     QToolButton *textButton = new QToolButton;
     textButton->setCheckable(true);
     buttonGroup->addButton(textButton, InsertTextButton);
     textButton->setIcon(QIcon(QPixmap(":/images/textpointer.png")));
-    textButton->setIconSize(QSize(30, 30));
+    textButton->setIconSize(QSize(50, 50));
     QGridLayout *textLayout = new QGridLayout;
     textLayout->addWidget(textButton, 0, 0, Qt::AlignHCenter);
     textLayout->addWidget(new QLabel(tr("Text")), 1, 0, Qt::AlignCenter);
     QWidget *textWidget = new QWidget;
     textWidget->setLayout(textLayout);
-    layout->addWidget(textWidget, 1, 1);
+    layout->addWidget(textWidget, 2, 0);
 
     layout->setRowStretch(3, 10);
     layout->setColumnStretch(2, 10);
@@ -468,17 +473,13 @@ void MainWindow::createToolBox()
     QWidget *backgroundWidget = new QWidget;
     backgroundWidget->setLayout(backgroundLayout);
 
-
-//! [22]
     toolBox = new QToolBox;
     toolBox->setSizePolicy(QSizePolicy(QSizePolicy::Maximum, QSizePolicy::Ignored));
     toolBox->setMinimumWidth(itemWidget->sizeHint().width());
     toolBox->addItem(itemWidget, tr("Basic Flowchart Shapes"));
     toolBox->addItem(backgroundWidget, tr("Backgrounds"));
 }
-//! [22]
 
-//! [23]
 void MainWindow::createActions()
 {
     toFrontAction = new QAction(QIcon(":/images/bringtofront.png"),
@@ -486,7 +487,6 @@ void MainWindow::createActions()
     toFrontAction->setShortcut(tr("Ctrl+F"));
     toFrontAction->setStatusTip(tr("Bring item to front"));
     connect(toFrontAction, SIGNAL(triggered()), this, SLOT(bringToFront()));
-//! [23]
 
     sendBackAction = new QAction(QIcon(":/images/sendtoback.png"), tr("Send to &Back"), this);
     sendBackAction->setShortcut(tr("Ctrl+T"));
@@ -548,9 +548,16 @@ void MainWindow::createActions()
     redoAction->setShortcut(tr("Ctrl+Shift+Z"));
     redoAction->setStatusTip(tr("Redo last operation"));
     connect(redoAction, SIGNAL(triggered()), this, SLOT(redo()));
+
+    groupAction = new QAction(QIcon(":images/group.png"), tr("G&roup"), this);
+    groupAction->setStatusTip(tr("Group graphic items "));
+    connect(groupAction, SIGNAL(triggered()), this, SLOT(groupItems()));
+
+    ungroupAction = new QAction(QIcon(":images/ungroup.png"), tr("U&ngroup"), this);
+    ungroupAction->setStatusTip(tr("Ungroup graphic items"));
+    connect(ungroupAction, SIGNAL(triggered()), this, SLOT(ungroupItems()));
 }
 
-//! [24]
 void MainWindow::createMenus()
 {
     fileMenu = menuBar()->addMenu(tr("&File"));
@@ -565,18 +572,18 @@ void MainWindow::createMenus()
     itemMenu->addAction(undoAction);
     itemMenu->addAction(redoAction);
     itemMenu->addSeparator();
+    itemMenu->addAction(groupAction);
+    itemMenu->addAction(ungroupAction);
+    itemMenu->addSeparator();
     itemMenu->addAction(toFrontAction);
     itemMenu->addAction(sendBackAction);
 
     aboutMenu = menuBar()->addMenu(tr("&Help"));
     aboutMenu->addAction(aboutAction);
 }
-//! [24]
 
-//! [25]
 void MainWindow::createToolbars()
 {
-//! [25]
     editToolBar = addToolBar(tr("Edit"));
     editToolBar->addAction(copyAction);
     editToolBar->addAction(cutAction);
@@ -586,6 +593,8 @@ void MainWindow::createToolbars()
     editToolBar->addAction(redoAction);
     editToolBar->addAction(toFrontAction);
     editToolBar->addAction(sendBackAction);
+    editToolBar->addAction(groupAction);
+    editToolBar->addAction(ungroupAction);
     removeToolBar(editToolBar);
     addToolBar(Qt::LeftToolBarArea, editToolBar);
     editToolBar->show();
@@ -710,7 +719,7 @@ QWidget *MainWindow::createCellWidget(const QString &text, DiagramItem::DiagramT
 
     QToolButton *button = new QToolButton;
     button->setIcon(icon);
-    button->setIconSize(QSize(30, 30));
+    button->setIconSize(QSize(50, 50));
     button->setCheckable(true);
     buttonGroup->addButton(button, int(type));
 

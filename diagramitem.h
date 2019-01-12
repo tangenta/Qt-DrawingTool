@@ -112,9 +112,9 @@ private:
     static constexpr qreal resizeHandlePointWidth = 5;
     static constexpr qreal closeEnoughDistance = 5;
     bool resizeMode = false;
-    Direction scaleDirection = TopLeft;
+    Direction scaleDirection;
 
-    QPointF tmpBeginMovingPosition;
+    QPointF movingStartPosition;
     bool isMoved = false;
     QPolygonF previousPolygon;
     bool isResized = false;

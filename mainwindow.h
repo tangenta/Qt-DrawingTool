@@ -92,6 +92,8 @@ private slots:
     void deleteItem();
     void undo();
     void redo();
+    void groupItems();
+    void ungroupItems();
     void pointerGroupClicked(int id);
     void bringToFront();
     void sendToBack();
@@ -145,6 +147,9 @@ private:
 
     QAction *toFrontAction;
     QAction *sendBackAction;
+    QAction *groupAction;
+    QAction *ungroupAction;
+
     QAction *aboutAction;
 
     QMenu *fileMenu;

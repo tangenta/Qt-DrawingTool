@@ -20,5 +20,7 @@
         <file>images/cut.png</file>
         <file>images/redo.png</file>
         <file>images/undo.png</file>
+        <file>images/ungroup.png</file>
+        <file>images/group.png</file>
     </qresource>
 </RCC>

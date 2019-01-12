@@ -230,8 +230,13 @@ void DiagramScene::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent) {
 
 void DiagramScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent) {
     hasItemSelected = false;
+
+    // leave sticky mode
     horizontalStickyMode = false;
     verticalStickyMode = false;
+    foreach(QGraphicsItem* p, selectedItems())
+        p->setFlag(QGraphicsItem::ItemIsMovable);
+
     clearOrthogonalLines();
     if (line != nullptr && myMode == InsertLine) {
         QList<QGraphicsItem *> startItems = items(line->line().p1());
@@ -277,13 +282,11 @@ void DiagramScene::wheelEvent(QGraphicsSceneWheelEvent* wheelEvent) {
 
 void DiagramScene::mouseDraggingMoveEvent(QGraphicsSceneMouseEvent* event) {
     clearOrthogonalLines();
-    qDebug() << "in mouse dragging function";
-    if ((event->buttons() & Qt::LeftButton) != 0 && !selectedItems().empty()) {
+    if ((event->buttons() & Qt::LeftButton) != 0 && selectedItems().size() == 1) {
         QGraphicsItem* itemUnderCursor = selectedItems().first();
         QPointF curCenter = itemUnderCursor->scenePos();
         QPointF const& mousePos = event->scenePos();
 
-        qDebug() << "selected Item";
         foreach(QGraphicsItem* p, items()) {
             if (p->type() != DiagramItem::Type || p == itemUnderCursor) continue;
 

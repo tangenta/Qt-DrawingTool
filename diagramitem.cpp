@@ -74,8 +74,8 @@ DiagramItem::DiagramItem(DiagramType diagramType, QMenu *contextMenu,
             path.arcTo(50, 0, 50, 50, 90, 90);
             path.arcTo(50, 50, 50, 50, 180, 90);
             path.arcTo(150, 50, 50, 50, 270, 90);
-            path.lineTo(200, 25);
-            myPolygon = path.toFillPolygon();
+            path.lineTo(200, 50);
+            myPolygon = path.toFillPolygon().translated(-125, -50);
             break;
         case Conditional:
             myPolygon << QPointF(-100, 0) << QPointF(0, 100)
@@ -100,9 +100,7 @@ DiagramItem::DiagramItem(DiagramType diagramType, QMenu *contextMenu,
     setAcceptHoverEvents(true);
 }
 
-//! [0]
 
-//! [1]
 void DiagramItem::removeArrow(Arrow *arrow)
 {
     int index = arrows.indexOf(arrow);
@@ -110,9 +108,7 @@ void DiagramItem::removeArrow(Arrow *arrow)
     if (index != -1)
         arrows.removeAt(index);
 }
-//! [1]
 
-//! [2]
 void DiagramItem::removeArrows()
 {
     foreach (Arrow *arrow, arrows) {
@@ -122,16 +118,12 @@ void DiagramItem::removeArrows()
         delete arrow;
     }
 }
-//! [2]
 
-//! [3]
 void DiagramItem::addArrow(Arrow *arrow)
 {
     arrows.append(arrow);
 }
-//! [3]
 
-//! [4]
 QPixmap DiagramItem::image() const
 {
     QPixmap pixmap(250, 250);
@@ -189,7 +181,7 @@ void DiagramItem::mousePressEvent(QGraphicsSceneMouseEvent* event) {
         event->accept();
     } else {
         qDebug() << "item type " << this->type() << " start moving from" << scenePos();
-        tmpBeginMovingPosition = scenePos();
+        movingStartPosition = scenePos();
         QGraphicsItem::mousePressEvent(event);
     }
 }
@@ -211,9 +203,9 @@ void DiagramItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event) {
         }
     } else {
         qDebug() << "\tend moving in" << scenePos();
-        if (scenePos() != tmpBeginMovingPosition) {
+        if (scenePos() != movingStartPosition) {
             isMoved = true;
-            qDebug() << "-- " << scenePos() << tmpBeginMovingPosition;
+            qDebug() << "-- " << scenePos() << movingStartPosition;
         }
     }
     resizeMode = false;
@@ -257,18 +249,14 @@ void DiagramItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* optio
         }
     }
 }
-//! [4]
 
-//! [5]
 void DiagramItem::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
 {
     scene()->clearSelection();
     setSelected(true);
     myContextMenu->exec(event->screenPos());
 }
-//! [5]
 
-//! [6]
 QVariant DiagramItem::itemChange(GraphicsItemChange change, const QVariant &value)
 {
     if (change == QGraphicsItem::ItemPositionChange) {
